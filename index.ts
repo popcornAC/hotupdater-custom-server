@@ -14,7 +14,9 @@ interface CheckUpdateResponse {
   fileUrl: string;
 }
 
-
+interface ReplyError {
+  error: string
+}
 const checkUpdateHeadersSchema = z.object({
   "x-bundle-id": z.string().min(1),
   "x-app-platform": z.enum(["ios", "android"]),
@@ -32,7 +34,10 @@ const parseHeaders = (rawHeaders: Record<string, unknown>) => {
   return checkUpdateHeadersSchema.safeParse(normalized);
 };
 
-server.get("/api/check-update", async (request, reply) => {
+server.get<{
+  Headers: z.infer<typeof checkUpdateHeadersSchema>
+  Reply: CheckUpdateResponse | null | ReplyError;
+}>("/api/check-update", async (request, reply) => {
   const result = parseHeaders(request.headers);
 
   if (!result.success) {
