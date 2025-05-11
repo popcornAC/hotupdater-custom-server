@@ -1,8 +1,9 @@
 import fastify from "fastify";
+import { z } from "zod";
+
 import { getUpdateInfo } from "./functions/getUpdateInfo";
 import { getSignedUrlFromS3 } from "./functions/getSignedUrlFromS3";
-
-export const NIL_UUID = "00000000-0000-0000-0000-000000000000";
+import { NIL_UUID } from "./constants";
 
 const server = fastify();
 
@@ -13,30 +14,41 @@ interface CheckUpdateResponse {
   fileUrl: string;
 }
 
-server.get<{
-  Reply: CheckUpdateResponse | null | { error: string };
-}>("/api/check-update", async (request, reply) => {
-  const getHeader = (key: string) => {
-    const val = request.headers[key];
-    return Array.isArray(val) ? val[0] : val?.toString();
-  };
 
-  const bundleId = getHeader("x-bundle-id");
-  const appVersion = getHeader("x-app-version");
-  const minBundleId = getHeader("x-min-bundle-id") ?? NIL_UUID;
-  const channel = getHeader("x-channel") ?? "production";
+const checkUpdateHeadersSchema = z.object({
+  "x-bundle-id": z.string().min(1),
+  "x-app-platform": z.enum(["ios", "android"]),
+  "x-app-version": z.string().min(1),
+  "x-min-bundle-id": z.string().optional().default(NIL_UUID),
+  "x-channel": z.string().optional().default("production"),
+});
 
-  const appPlatform = (() => {
-    const platform = getHeader("x-app-platform");
-    return platform === "ios" || platform === "android" ? platform : undefined;
-  })();
 
-  if (!bundleId || !appPlatform || !appVersion) {
-    return reply.status(400).send({ error: "Missing required headers." });
+const parseHeaders = (rawHeaders: Record<string, unknown>) => {
+  const normalized: Record<string, unknown> = {};
+  for (const [key, val] of Object.entries(rawHeaders)) {
+    normalized[key.toLowerCase()] = Array.isArray(val) ? val[0] : val;
+  }
+  return checkUpdateHeadersSchema.safeParse(normalized);
+};
+
+server.get("/api/check-update", async (request, reply) => {
+  const result = parseHeaders(request.headers);
+
+  if (!result.success) {
+    return reply.status(400).send({ error: "Invalid or missing headers." });
   }
 
+  const {
+    "x-bundle-id": bundleId,
+    "x-app-platform": platform,
+    "x-app-version": appVersion,
+    "x-min-bundle-id": minBundleId,
+    "x-channel": channel,
+  } = result.data;
+
   const updateInfo = await getUpdateInfo({
-    platform: appPlatform,
+    platform,
     bundleId,
     appVersion,
     minBundleId,
@@ -52,8 +64,8 @@ server.get<{
   return reply.send({
     fileUrl: signedUrl,
     message: updateInfo.message ?? "",
-    shouldForceUpdate: updateInfo.shouldForceUpdate, // tells hotupdater to force restart after downloading
-    id: updateInfo.id, // UUID7
+    shouldForceUpdate: updateInfo.shouldForceUpdate,
+    id: updateInfo.id,
   });
 });
 

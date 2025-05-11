@@ -1,4 +1,4 @@
-import { NIL_UUID } from "..";
+import { NIL_UUID } from "../constants";
 
 type GetUpdateInfoArgs = {
   platform: "ios" | "android";

@@ -1,22 +1,19 @@
 {
   "name": "hotupdater-custom-server",
   "version": "1.0.0",
-  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc -p tsconfig.json",
-    "start": "node index.ts"
+    "start": "tsx index.ts"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "type": "module",
-  "description": "",
   "dependencies": {
-    "fastify": "^5.3.2"
+    "fastify": "^5.3.2",
+    "zod": "^3.24.4"
   },
   "devDependencies": {
     "@types/node": "^22.15.17",
+    "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   }
 }
