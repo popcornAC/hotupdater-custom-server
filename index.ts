@@ -6,7 +6,16 @@ export const NIL_UUID = "00000000-0000-0000-0000-000000000000";
 
 const server = fastify();
 
-server.get("/api/check-update", async (request, reply) => {
+interface CheckUpdateResponse {
+  id: string;
+  message: string;
+  shouldForceUpdate: boolean;
+  fileUrl: string;
+}
+
+server.get<{
+  Reply: CheckUpdateResponse | null | { error: string };
+}>("/api/check-update", async (request, reply) => {
   const getHeader = (key: string) => {
     const val = request.headers[key];
     return Array.isArray(val) ? val[0] : val?.toString();
@@ -40,7 +49,12 @@ server.get("/api/check-update", async (request, reply) => {
 
   const signedUrl = await getSignedUrlFromS3(updateInfo.s3Key);
 
-  return reply.send({ fileUrl: signedUrl });
+  return reply.send({
+    fileUrl: signedUrl,
+    message: updateInfo.message ?? "",
+    shouldForceUpdate: updateInfo.shouldForceUpdate,
+    id: updateInfo.id,
+  });
 });
 
 server.listen({ port: 8080 }, (err, address) => {
