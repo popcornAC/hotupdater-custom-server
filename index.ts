@@ -52,8 +52,8 @@ server.get<{
   return reply.send({
     fileUrl: signedUrl,
     message: updateInfo.message ?? "",
-    shouldForceUpdate: updateInfo.shouldForceUpdate,
-    id: updateInfo.id,
+    shouldForceUpdate: updateInfo.shouldForceUpdate, // tells hotupdater to force restart after downloading
+    id: updateInfo.id, // UUID7
   });
 });
 
