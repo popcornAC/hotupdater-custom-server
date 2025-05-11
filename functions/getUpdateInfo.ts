@@ -1,4 +1,6 @@
 import { NIL_UUID } from "../constants";
+import { getDBInstance } from "../database/instance";
+import { OTABundlesService } from "../database/queries";
 
 type GetUpdateInfoArgs = {
   platform: "ios" | "android";
@@ -17,28 +19,7 @@ interface UpdateInfo {
   s3Key: string;
 }
 
-const hardcodedBundles = [
-  {
-    id: "018f71d6-1111-7000-a1b2-111111111111",
-    version: "2.1.0",
-    platform: "ios",
-    channel: "production",
-    shouldForceUpdate: false,
-    message: "",
-    status: "UPDATE",
-    s3Key: "prod/ios/2.1.0/018f71d6-1111-7000-a1b2-111111111111.js",
-  },
-  {
-    id: "018f71d5-0000-7000-b2c3-222222222222", // Older UUIDv7
-    version: "2.1.0",
-    platform: "ios",
-    channel: "production",
-    shouldForceUpdate: true,
-    message: "",
-    status: "ROLLBACK",
-    s3Key: "prod/ios/2.1.0/018f71d5-0000-7000-b2c3-222222222222.js",
-  },
-] as const;
+const $OTABundlesService = new OTABundlesService(getDBInstance());
 
 export const getUpdateInfo = async ({
   platform,
@@ -47,23 +28,17 @@ export const getUpdateInfo = async ({
   minBundleId,
   channel = "production",
 }: GetUpdateInfoArgs): Promise<UpdateInfo | null> => {
-  // future PG query:
-  // select * from mobile_ota_updates where platform = $1 and channel = $2 and version = $3 sort by id desc limit
-
-  const currentBundle = hardcodedBundles.find((b) => b.id === bundleId);
+  const currentBundle = await $OTABundlesService.getBundleById(bundleId);
 
   const bundleIdToEvaluate =
     !currentBundle || currentBundle.status === "ROLLBACK"
       ? minBundleId ?? NIL_UUID
       : currentBundle.id;
 
-  // 1. Filter bundles matching platform, channel, and exact native app version
-  const relevantBundles = hardcodedBundles.filter(
-    (b) =>
-      b.platform === platform &&
-      b.channel === channel &&
-      b.version === appVersion &&
-      b.status !== "ROLLBACK"
+  const relevantBundles = await $OTABundlesService.getRelevantBundles(
+    platform,
+    channel,
+    appVersion
   );
 
   // 2. Sort in descending UUIDv7 order
