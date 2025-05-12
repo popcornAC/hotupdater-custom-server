@@ -1,11 +1,14 @@
 import { sql } from "drizzle-orm";
-import { getDBInstance, resetDBInstance } from "../database/instance";
+import {
+  getSQLiteInstance,
+  resetSQLiteInstance,
+} from "../database/providers/sqlite/instance";
 import { otaBundles } from "../database/schema";
 
 async function seed() {
   try {
-    resetDBInstance();
-    const db = getDBInstance();
+    resetSQLiteInstance();
+    const db = getSQLiteInstance();
 
     await new Promise<void>((resolve) => {
       db.run(sql`

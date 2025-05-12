@@ -1,12 +1,12 @@
 import { desc, eq, and, not } from "drizzle-orm";
-import { getDBInstance } from "../../instance";
+import { getSQLiteInstance } from "./instance";
 import { otaBundles } from "../../schema";
 import { normalizeBundle } from "../../utils";
 import { IOTABundlesProvider } from "../interfaces/IOTABundlesProvider";
 import { OTABundle } from "../types";
 
 export class SQLiteOTABundlesProvider implements IOTABundlesProvider {
-  constructor(private db: ReturnType<typeof getDBInstance>) {}
+  constructor(private db: ReturnType<typeof getSQLiteInstance>) {}
 
   async getBundleById(id: string): Promise<OTABundle | null> {
     const results = await this.db
