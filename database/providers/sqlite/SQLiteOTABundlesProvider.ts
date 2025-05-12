@@ -1,12 +1,14 @@
 import { desc, eq, and, not } from "drizzle-orm";
-import { getDBInstance } from "./instance";
-import { otaBundles } from "./schema";
-import { normalizeBundle } from "./utils";
+import { getDBInstance } from "../../instance";
+import { otaBundles } from "../../schema";
+import { normalizeBundle } from "../../utils";
+import { IOTABundlesProvider } from "../interfaces/IOTABundlesProvider";
+import { OTABundle } from "../types";
 
-export class OTABundlesService {
+export class SQLiteOTABundlesProvider implements IOTABundlesProvider {
   constructor(private db: ReturnType<typeof getDBInstance>) {}
 
-  async getBundleById(id: string) {
+  async getBundleById(id: string): Promise<OTABundle | null> {
     const results = await this.db
       .select()
       .from(otaBundles)
@@ -14,7 +16,6 @@ export class OTABundlesService {
       .limit(1);
 
     const bundle = results[0] ?? null;
-
     if (!bundle) return null;
 
     return normalizeBundle(bundle);
@@ -24,7 +25,7 @@ export class OTABundlesService {
     platform: "ios" | "android",
     channel: string,
     appVersion: string
-  ) {
+  ): Promise<OTABundle[]> {
     const results = await this.db
       .select()
       .from(otaBundles)

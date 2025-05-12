@@ -15,7 +15,7 @@ interface CheckUpdateResponse {
 }
 
 interface ReplyError {
-  error: string
+  error: string;
 }
 const checkUpdateHeadersSchema = z.object({
   "x-bundle-id": z.string().min(1),
@@ -24,7 +24,6 @@ const checkUpdateHeadersSchema = z.object({
   "x-min-bundle-id": z.string().optional().default(NIL_UUID),
   "x-channel": z.string().optional().default("production"),
 });
-
 
 const parseHeaders = (rawHeaders: Record<string, unknown>) => {
   const normalized: Record<string, unknown> = {};
@@ -35,7 +34,7 @@ const parseHeaders = (rawHeaders: Record<string, unknown>) => {
 };
 
 server.get<{
-  Headers: z.infer<typeof checkUpdateHeadersSchema>
+  Headers: z.infer<typeof checkUpdateHeadersSchema>;
   Reply: CheckUpdateResponse | null | ReplyError;
 }>("/api/check-update", async (request, reply) => {
   const result = parseHeaders(request.headers);

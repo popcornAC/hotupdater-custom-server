@@ -1,16 +1,21 @@
 import { drizzle } from "drizzle-orm/better-sqlite3";
-import path from "path";
 import Database from "better-sqlite3";
+import path from "path";
+import { otaBundles } from "./schema";
 
-import * as schema from "./schema";
+const DB_PATH =
+  process.env.DB_PATH || path.join(process.cwd(), "database", "db.sqlite");
 
-let db: ReturnType<typeof drizzle<typeof schema>> | null = null;
+let dbInstance: ReturnType<typeof drizzle> | null = null;
 
-export const getDBInstance = () => {
-  if (db) {
-    return db;
+export function getDBInstance() {
+  if (!dbInstance) {
+    const sqlite = new Database(DB_PATH);
+    dbInstance = drizzle(sqlite, { schema: { otaBundles } });
   }
+  return dbInstance;
+}
 
-  db = drizzle(new Database("./database/db.sqlite"), { schema });
-  return db;
-};
+export function resetDBInstance() {
+  dbInstance = null;
+}

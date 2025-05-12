@@ -1,36 +1,14 @@
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import { eq } from "drizzle-orm";
-
+import { sql } from "drizzle-orm";
+import { getDBInstance, resetDBInstance } from "../database/instance";
 import { otaBundles } from "../database/schema";
-
-const hardcodedBundles = [
-  {
-    id: "018f71d6-1111-7000-a1b2-111111111111",
-    version: "2.1.0",
-    platform: "ios",
-    channel: "production",
-    shouldForceUpdate: 0,
-    message: "",
-    status: "UPDATE",
-    s3Key: "prod/ios/2.1.0/018f71d6-1111-7000-a1b2-111111111111.js",
-  },
-  {
-    id: "018f71d5-0000-7000-b2c3-222222222222",
-    version: "2.1.0",
-    platform: "ios",
-    channel: "production",
-    shouldForceUpdate: 1,
-    message: "",
-    status: "ROLLBACK",
-    s3Key: "prod/ios/2.1.0/018f71d5-0000-7000-b2c3-222222222222.js",
-  },
-];
 
 async function seed() {
   try {
-    const rawDb = new Database("./database/db.sqlite");
-    rawDb.exec(`
+    resetDBInstance();
+    const db = getDBInstance();
+
+    await new Promise<void>((resolve) => {
+      db.run(sql`
         CREATE TABLE IF NOT EXISTS ota_bundles (
           id TEXT PRIMARY KEY,
           version TEXT NOT NULL,
@@ -39,26 +17,41 @@ async function seed() {
           status TEXT NOT NULL,
           s3_key TEXT NOT NULL,
           message TEXT,
-          should_force_update INTEGER NOT NULL DEFAULT 0);
+          should_force_update INTEGER NOT NULL
+        );
       `);
-    const db = drizzle(rawDb);
+      resolve();
+    });
 
-    for (const bundle of hardcodedBundles) {
-      const existing = await db
-        .select()
-        .from(otaBundles)
-        .where(eq(otaBundles.id, bundle.id))
-        .limit(1);
+    await db.delete(otaBundles);
 
-      if (existing.length === 0) {
-        await db.insert(otaBundles).values(bundle as any);
-        console.log(`✅ Inserted bundle ${bundle.id}`);
-      } else {
-        console.log(`ℹ️  Skipped existing bundle ${bundle.id}`);
-      }
-    }
+    await db.insert(otaBundles).values([
+      {
+        id: "0196c25b-955a-7c7e-85c8-19e0f9cb4379",
+        platform: "ios",
+        channel: "production",
+        version: "1.1.0",
+        status: "UPDATE",
+        s3Key: "prod/ios/1.1.0/0196c25b-955a-7c7e-85c8-19e0f9cb4379.js",
+        message: "Initial release",
+        shouldForceUpdate: 0,
+      },
+      {
+        id: "0196c25b-b07e-70e1-a7ae-42d4b81d8cca",
+        platform: "android",
+        channel: "production",
+        version: "1.1.0",
+        status: "UPDATE",
+        s3Key: "prod/android/1.1.0/0196c25b-b07e-70e1-a7ae-42d4b81d8cca.js",
+        message: "Updated release",
+        shouldForceUpdate: 1,
+      },
+    ] as any);
+
+    console.log("Database seeded successfully!");
   } catch (error) {
-    console.error("❌ Failed to seed OTA bundles:", error);
+    console.error("Error seeding database:", error);
+    process.exit(1);
   }
 }
 

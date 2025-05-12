@@ -1,6 +1,5 @@
 import { NIL_UUID } from "../constants";
-import { getDBInstance } from "../database/instance";
-import { OTABundlesService } from "../database/queries";
+import { OTABundlesProviderFactory } from "../database/providers/factory/OTABundlesProviderFactory";
 
 type GetUpdateInfoArgs = {
   platform: "ios" | "android";
@@ -19,7 +18,7 @@ interface UpdateInfo {
   s3Key: string;
 }
 
-const $OTABundlesService = new OTABundlesService(getDBInstance());
+const provider = OTABundlesProviderFactory.createProvider("sqlite");
 
 export const getUpdateInfo = async ({
   platform,
@@ -28,14 +27,14 @@ export const getUpdateInfo = async ({
   minBundleId,
   channel = "production",
 }: GetUpdateInfoArgs): Promise<UpdateInfo | null> => {
-  const currentBundle = await $OTABundlesService.getBundleById(bundleId);
+  const currentBundle = await provider.getBundleById(bundleId);
 
   const bundleIdToEvaluate =
     !currentBundle || currentBundle.status === "ROLLBACK"
       ? minBundleId ?? NIL_UUID
       : currentBundle.id;
 
-  const relevantBundles = await $OTABundlesService.getRelevantBundles(
+  const relevantBundles = await provider.getRelevantBundles(
     platform,
     channel,
     appVersion
@@ -51,7 +50,7 @@ export const getUpdateInfo = async ({
     return {
       id: latestUpdate.id,
       shouldForceUpdate: latestUpdate.shouldForceUpdate,
-      message: latestUpdate.message,
+      message: latestUpdate.message ?? "",
       status: latestUpdate.status,
       s3Key: latestUpdate.s3Key,
     };

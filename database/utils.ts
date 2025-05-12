@@ -1,17 +1,17 @@
 import { InferSelectModel } from "drizzle-orm";
-import { otaBundles as OTABundle } from "./schema";
+import { otaBundles as DBBundle } from "./schema";
+import { OTABundle } from "./providers/types";
+type OTABundleRow = InferSelectModel<typeof DBBundle>;
 
-type OTABundleRow = InferSelectModel<typeof OTABundle>;
-
-export function normalizeBundle(row: OTABundleRow): Record<string, any> {
+export function normalizeBundle(row: OTABundleRow): OTABundle {
   return {
     id: row.id,
     version: row.version,
-    platform: row.platform,
+    platform: row.platform as "ios" | "android",
     channel: row.channel,
-    status: row.status,
+    status: row.status as "UPDATE" | "ROLLBACK",
     s3Key: row.s3Key,
-    message: row.message,
+    message: row.message || "",
     shouldForceUpdate: row.shouldForceUpdate ? true : false,
   };
 }
