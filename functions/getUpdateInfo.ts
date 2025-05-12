@@ -14,7 +14,6 @@ interface UpdateInfo {
   id: string;
   shouldForceUpdate: boolean;
   message: string | null;
-  status: "ROLLBACK" | "UPDATE";
   s3Key: string;
 }
 
@@ -51,7 +50,6 @@ export const getUpdateInfo = async ({
       id: latestUpdate.id,
       shouldForceUpdate: latestUpdate.shouldForceUpdate,
       message: latestUpdate.message ?? "",
-      status: latestUpdate.status,
       s3Key: latestUpdate.s3Key,
     };
   }
