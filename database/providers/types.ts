@@ -7,4 +7,5 @@ export interface OTABundle {
   s3Key: string;
   message?: string;
   shouldForceUpdate: boolean;
+  fileHash: string;
 }

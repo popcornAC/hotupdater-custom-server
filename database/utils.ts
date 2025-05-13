@@ -13,5 +13,6 @@ export function normalizeBundle(row: OTABundleRow): OTABundle {
     s3Key: row.s3Key,
     message: row.message || "",
     shouldForceUpdate: row.shouldForceUpdate ? true : false,
+    fileHash: row.fileHash,
   };
 }

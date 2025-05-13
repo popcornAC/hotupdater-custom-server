@@ -20,7 +20,8 @@ async function seed() {
           status TEXT NOT NULL,
           s3_key TEXT NOT NULL,
           message TEXT,
-          should_force_update INTEGER NOT NULL
+          should_force_update INTEGER NOT NULL,
+          file_hash TEXT NOT NULL
         );
       `);
       resolve();
@@ -38,6 +39,7 @@ async function seed() {
         s3Key: "prod/ios/1.1.0/0196c25b-955a-7c7e-85c8-19e0f9cb4379.js",
         message: "Initial release",
         shouldForceUpdate: 0,
+        fileHash: "1234567890",
       },
       {
         id: "0196c25b-b07e-70e1-a7ae-42d4b81d8cca",
@@ -48,6 +50,7 @@ async function seed() {
         s3Key: "prod/android/1.1.0/0196c25b-b07e-70e1-a7ae-42d4b81d8cca.js",
         message: "Updated release",
         shouldForceUpdate: 1,
+        fileHash: "1234567890",
       },
     ] as any);
 

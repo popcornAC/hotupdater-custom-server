@@ -9,4 +9,5 @@ export const otaBundles = sqliteTable('ota_bundles', {
   s3Key: text('s3_key').notNull(),
   message: text('message'),
   shouldForceUpdate: integer('should_force_update').$type<boolean>().notNull(),
+  fileHash: text('file_hash').notNull(),
 });

@@ -11,6 +11,7 @@ interface CheckUpdateResponse {
   id: string;
   message: string;
   shouldForceUpdate: boolean;
+  fileHash: string;
   fileUrl: string;
 }
 
@@ -69,6 +70,7 @@ server.get<{
     fileUrl: signedUrl,
     message: updateInfo.message ?? "",
     shouldForceUpdate: updateInfo.shouldForceUpdate,
+    fileHash: updateInfo.fileHash,
     id: updateInfo.id,
   });
 });

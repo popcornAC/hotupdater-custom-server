@@ -14,6 +14,7 @@ interface UpdateInfo {
   id: string;
   shouldForceUpdate: boolean;
   message: string | null;
+  fileHash: string;
   s3Key: string;
 }
 
@@ -51,6 +52,7 @@ export const getUpdateInfo = async ({
       shouldForceUpdate: latestUpdate.shouldForceUpdate,
       message: latestUpdate.message ?? "",
       s3Key: latestUpdate.s3Key,
+      fileHash: latestUpdate.fileHash,
     };
   }
   return null;
